@@ -342,6 +342,26 @@
 
     /* Payment input */
     .payment-section { margin-bottom: 14px; }
+    .quick-cash {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .btn-quick {
+      flex: 1;
+      padding: 7px 4px;
+      border: 1px solid var(--rule);
+      background: var(--paper);
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-family: 'Noto Serif TC', serif;
+      color: var(--ink-light);
+      letter-spacing: 0.05em;
+      transition: all 0.12s;
+    }
+    .btn-quick:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .btn-quick.active { background: var(--accent); color: var(--paper); border-color: var(--accent); }
     .payment-row {
       display: flex;
       justify-content: space-between;
@@ -639,9 +659,15 @@
       <span class="receipt-total-amt" id="receiptTotal">$0</span>
     </div>
     <div class="payment-section">
+      <div class="quick-cash" id="quickCash">
+        <button class="btn-quick" onclick="setQuickCash(100)">$100</button>
+        <button class="btn-quick" onclick="setQuickCash(200)">$200</button>
+        <button class="btn-quick" onclick="setQuickCash(500)">$500</button>
+        <button class="btn-quick" onclick="setQuickCash(1000)">$1000</button>
+      </div>
       <div class="payment-row">
         <span class="payment-label">收款金額</span>
-        <input type="number" class="payment-input" id="cashInput" min="0" placeholder="0" oninput="calcChange()" />
+        <input type="number" class="payment-input" id="cashInput" min="0" placeholder="0" oninput="onCashInput()" />
       </div>
       <div class="change-row">
         <span class="change-label">找　零</span>
@@ -761,12 +787,32 @@
     document.getElementById('cashInput').value = currentTotal;
     document.getElementById('changeDisplay').textContent = '$0';
     document.getElementById('changeDisplay').className = 'change-amount';
+    // highlight matching quick button if any
+    updateQuickHighlight(currentTotal);
     document.getElementById('checkoutModal').classList.add('show');
     setTimeout(() => document.getElementById('cashInput').focus(), 100);
   }
 
   function closeCheckout() {
     document.getElementById('checkoutModal').classList.remove('show');
+  }
+
+  function setQuickCash(amount) {
+    document.getElementById('cashInput').value = amount;
+    updateQuickHighlight(amount);
+    calcChange();
+  }
+
+  function onCashInput() {
+    const val = parseInt(document.getElementById('cashInput').value) || 0;
+    updateQuickHighlight(val);
+    calcChange();
+  }
+
+  function updateQuickHighlight(amount) {
+    document.querySelectorAll('.btn-quick').forEach(b => {
+      b.classList.toggle('active', parseInt(b.textContent.replace('$','')) === amount);
+    });
   }
 
   function calcChange() {
@@ -818,12 +864,21 @@
     document.getElementById('recordsSummary').style.display = 'none';
     document.getElementById('recordsBody').innerHTML = '<div class="records-loading">載入中⋯</div>';
 
-    fetch(APPS_SCRIPT_URL)
-      .then(r => r.json())
+    fetch(APPS_SCRIPT_URL, { redirect: 'follow' })
+      .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      })
       .then(renderRecords)
-      .catch(() => {
-        document.getElementById('recordsBody').innerHTML =
-          '<div class="records-empty">無法連線，請確認網路或重新整理。</div>';
+      .catch(err => {
+        document.getElementById('recordsBody').innerHTML = `
+          <div class="records-empty">
+            ⚠️ 無法載入記錄<br>
+            <span style="font-size:0.75rem;line-height:2">
+              請確認 Apps Script 已重新部署（新版本）<br>
+              部署 → 管理部署作業 → 編輯 → 版本選「新版本」→ 部署
+            </span>
+          </div>`;
       });
   }
 
