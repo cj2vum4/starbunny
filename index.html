@@ -758,8 +758,8 @@
       </div>`).join('');
 
     document.getElementById('receiptTotal').textContent = `$${currentTotal}`;
-    document.getElementById('cashInput').value = '';
-    document.getElementById('changeDisplay').textContent = '—';
+    document.getElementById('cashInput').value = currentTotal;
+    document.getElementById('changeDisplay').textContent = '$0';
     document.getElementById('changeDisplay').className = 'change-amount';
     document.getElementById('checkoutModal').classList.add('show');
     setTimeout(() => document.getElementById('cashInput').focus(), 100);
