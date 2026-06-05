@@ -431,6 +431,9 @@
     document.getElementById('checkoutBtn').disabled = order.length === 0;
   }
 
+  // 部署 Apps Script 後，將 URL 貼到這裡
+  const APPS_SCRIPT_URL = '';
+
   function checkout() {
     if (order.length === 0) return;
     const total = order.reduce((s, o) => s + o.price * o.qty, 0);
@@ -444,6 +447,18 @@
 
     document.getElementById('receiptTotal').textContent = `合計：$${total}`;
     document.getElementById('modalOverlay').classList.add('show');
+
+    if (APPS_SCRIPT_URL) {
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: order.map(o => ({ name: o.name, qty: o.qty, subtotal: o.price * o.qty })),
+          total: total
+        })
+      }).catch(() => {});
+    }
   }
 
   function closeModal() {
