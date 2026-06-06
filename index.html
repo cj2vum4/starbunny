@@ -697,17 +697,20 @@
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwilucXQ-BSXgXSh7NpQQxI77eYOmYSChWmizG8VyEXBy7_ZoG0oSG8VkzHDMH8PIwClA/exec';
 
   const MENU = [
-    { name: '花切香腸',        price: 50  },
-    { name: '麻辣香腸',        price: 70  },
-    { name: '高粱香腸',        price: 60  },
-    { name: '飛魚卵香腸',      price: 70  },
-    { name: '墨魚香腸',        price: 90  },
-    { name: '香酥米腸',        price: 50  },
-    { name: '寶藏箱',          price: 100 },
-    { name: '深海藏寶',        price: 150 },
-    { name: '香腸＋蜂蜜水',   price: 90  },
-    { name: '香腸＋奶茶/奶綠', price: 90  },
-    { name: '咖哩飯',          price: 100 },
+    { name: '花切香腸',       price: 50,  type: 'sausage' },
+    { name: '麻辣香腸',       price: 70,  type: 'sausage' },
+    { name: '高粱香腸',       price: 60,  type: 'sausage' },
+    { name: '飛魚卵香腸',     price: 70,  type: 'sausage' },
+    { name: '墨魚香腸',       price: 90,  type: 'sausage' },
+    { name: '香酥米腸',       price: 50,  type: 'sausage' },
+    { name: '寶藏箱',         price: 100, type: 'other'   },
+    { name: '深海藏寶',       price: 150, type: 'other'   },
+    { name: '咖哩飯(小)',     price: 40,  type: 'other'   },
+    { name: '咖哩飯(大)',     price: 150, type: 'other'   },
+    { name: '蜂蜜水(小)',     price: 40,  type: 'drink'   },
+    { name: '蜂蜜水(大)',     price: 80,  type: 'drink'   },
+    { name: '奶茶/奶綠(小)', price: 40,  type: 'drink'   },
+    { name: '奶茶/奶綠(大)', price: 80,  type: 'drink'   },
   ];
 
   let order = [];
@@ -715,13 +718,24 @@
   let pendingDeleteRow = null;
 
   // ── Build menu ──
+  const GROUPS = [
+    { label: '香腸', types: ['sausage'] },
+    { label: '套餐 ／ 飲料', types: ['other', 'drink'] },
+  ];
   const grid = document.getElementById('menuGrid');
-  MENU.forEach((item, idx) => {
-    const btn = document.createElement('button');
-    btn.className = 'item-btn';
-    btn.innerHTML = `<div class="name">${item.name}</div><div class="price">$ ${item.price}</div>`;
-    btn.onclick = () => addItem(idx);
-    grid.appendChild(btn);
+  GROUPS.forEach(group => {
+    const items = MENU.map((item, idx) => ({ item, idx })).filter(({ item }) => group.types.includes(item.type));
+    const header = document.createElement('div');
+    header.style.cssText = 'grid-column:1/-1;font-size:0.65rem;letter-spacing:0.25em;color:var(--ink-light);padding:4px 0 2px;border-bottom:1px solid var(--rule);margin-top:4px;';
+    header.textContent = group.label;
+    grid.appendChild(header);
+    items.forEach(({ item, idx }) => {
+      const btn = document.createElement('button');
+      btn.className = 'item-btn';
+      btn.innerHTML = `<div class="name">${item.name}</div><div class="price">$ ${item.price}</div>`;
+      btn.onclick = () => addItem(idx);
+      grid.appendChild(btn);
+    });
   });
 
   // ── Tab ──
@@ -752,22 +766,38 @@
 
   function clearOrder() { order = []; renderOrder(); }
 
+  function calcDiscount() {
+    const sausageQty = order.filter(o => MENU.find(m => m.name === o.name)?.type === 'sausage').reduce((s, o) => s + o.qty, 0);
+    const drinkQty   = order.filter(o => MENU.find(m => m.name === o.name)?.type === 'drink').reduce((s, o) => s + o.qty, 0);
+    return Math.min(sausageQty, drinkQty) * 10;
+  }
+
   function renderOrder() {
     const list = document.getElementById('orderList');
-    currentTotal = order.reduce((s, o) => s + o.price * o.qty, 0);
+    const subtotal = order.reduce((s, o) => s + o.price * o.qty, 0);
+    const discount = calcDiscount();
+    currentTotal = subtotal - discount;
 
-    list.innerHTML = order.length === 0
-      ? '<div class="order-empty">— 尚無品項 —<br><span style="font-size:0.72rem">點選左側加入訂單</span></div>'
-      : order.map(o => `
-          <div class="order-item">
-            <div class="item-name">${o.name}</div>
-            <div class="qty-ctrl">
-              <button class="qty-btn" onclick="changeQty('${o.name}',-1)">−</button>
-              <span class="qty-num">${o.qty}</span>
-              <button class="qty-btn" onclick="changeQty('${o.name}',1)">+</button>
-            </div>
-            <div class="item-subtotal">$${o.price * o.qty}</div>
-          </div>`).join('');
+    if (order.length === 0) {
+      list.innerHTML = '<div class="order-empty">— 尚無品項 —<br><span style="font-size:0.72rem">點選左側加入訂單</span></div>';
+    } else {
+      const itemRows = order.map(o => `
+        <div class="order-item">
+          <div class="item-name">${o.name}</div>
+          <div class="qty-ctrl">
+            <button class="qty-btn" onclick="changeQty('${o.name}',-1)">−</button>
+            <span class="qty-num">${o.qty}</span>
+            <button class="qty-btn" onclick="changeQty('${o.name}',1)">+</button>
+          </div>
+          <div class="item-subtotal">$${o.price * o.qty}</div>
+        </div>`).join('');
+      const discountRow = discount > 0 ? `
+        <div class="order-item" style="border-bottom:none;padding-top:10px;">
+          <div class="item-name" style="color:var(--sage);font-size:0.8rem">🏷 香腸搭配飲料折扣</div>
+          <div class="item-subtotal" style="color:var(--sage)">−$${discount}</div>
+        </div>` : '';
+      list.innerHTML = itemRows + discountRow;
+    }
 
     document.getElementById('totalAmount').textContent = `$${currentTotal}`;
     document.getElementById('checkoutBtn').disabled = order.length === 0;
@@ -777,11 +807,18 @@
   function openCheckout() {
     if (!order.length) return;
 
-    document.getElementById('receiptItems').innerHTML = order.map(o => `
-      <div class="receipt-row">
-        <span>${o.name} × ${o.qty}</span>
-        <span>$${o.price * o.qty}</span>
-      </div>`).join('');
+    const discount = calcDiscount();
+    const discountLine = discount > 0 ? `
+      <div class="receipt-row" style="color:var(--sage)">
+        <span>🏷 香腸搭配飲料折扣</span>
+        <span>−$${discount}</span>
+      </div>` : '';
+    document.getElementById('receiptItems').innerHTML =
+      order.map(o => `
+        <div class="receipt-row">
+          <span>${o.name} × ${o.qty}</span>
+          <span>$${o.price * o.qty}</span>
+        </div>`).join('') + discountLine;
 
     document.getElementById('receiptTotal').textContent = `$${currentTotal}`;
     document.getElementById('cashInput').value = currentTotal;
