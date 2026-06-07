@@ -5,10 +5,12 @@
 const LINE_TOKEN = 'xQjzGk3kDZn72uSiM8WRcPWXOalwkEbwrsIuwJXZixWvwy3rGhjqQrTxDeNT6A1UEzj+TPBmY3BKKJZUwvriQ3DQmKqvAAXFAx8oGFzLN91eIdq/N4PrD/ZiRRd9Uk2hwQe0g7pFjr/wla+gWHotEwdB04t89/1O/w1cDnyilFU=';
 const SHEET_NAME = '訂單紀錄';
 
-// ── GET：讀取今日訂單 ──────────────────────────
+// ── GET：讀取訂單（可傳 ?date=2026/06/07，預設今日）──
 function doGet(e) {
   const sheet = getSheet();
-  const today = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy/MM/dd');
+  const target = (e && e.parameter && e.parameter.date)
+    ? e.parameter.date
+    : Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy/MM/dd');
   const data = sheet.getDataRange().getValues();
 
   const orders = [];
@@ -17,7 +19,7 @@ function doGet(e) {
     const timeStr = data[i][0] instanceof Date
       ? Utilities.formatDate(data[i][0], 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss')
       : data[i][0].toString();
-    if (!timeStr.startsWith(today)) continue;
+    if (!timeStr.startsWith(target)) continue;
     orders.push({
       row:    i + 1,
       time:   timeStr,

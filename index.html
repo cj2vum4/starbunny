@@ -440,9 +440,29 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
       margin-bottom: 18px;
+      flex-wrap: wrap;
     }
-    .records-date { font-size: 0.72rem; letter-spacing: 0.25em; color: var(--ink-light); }
+    .date-picker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .date-picker-label { font-size: 0.72rem; letter-spacing: 0.2em; color: var(--ink-light); }
+    .date-picker {
+      padding: 6px 10px;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      background: var(--white);
+      font-family: 'Noto Serif TC', serif;
+      font-size: 0.82rem;
+      color: var(--ink);
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .date-picker:focus { border-color: var(--accent); }
     .btn-refresh {
       padding: 7px 16px;
       border: 1px solid var(--rule);
@@ -625,7 +645,10 @@
 <div id="view-records" class="view">
   <div class="records-container">
     <div class="records-topbar">
-      <span class="records-date" id="recordsDate"></span>
+      <div class="date-picker-wrap">
+        <span class="date-picker-label">查詢日期</span>
+        <input type="date" class="date-picker" id="recordsDatePicker" onchange="loadRecords()" />
+      </div>
       <button class="btn-refresh" onclick="loadRecords()">↻ 重新整理</button>
     </div>
     <div id="recordsBody">
@@ -902,19 +925,26 @@
 
   // ── Records ──
   function loadRecords() {
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-    document.getElementById('recordsDate').textContent = dateStr;
+    const picker = document.getElementById('recordsDatePicker');
+    // 預設今天
+    if (!picker.value) {
+      const now = new Date();
+      picker.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    }
+    // 轉成 yyyy/MM/dd 傳給 Apps Script
+    const [y, m, d] = picker.value.split('-');
+    const dateParam = `${y}/${m}/${d}`;
+
     document.getElementById('recordsSummary').style.display = 'none';
     document.getElementById('recordsBody').innerHTML = '<div class="records-loading">載入中⋯</div>';
 
-    fetch(APPS_SCRIPT_URL, { redirect: 'follow' })
+    fetch(`${APPS_SCRIPT_URL}?date=${dateParam}`, { redirect: 'follow' })
       .then(r => {
         if (!r.ok) throw new Error(r.status);
         return r.json();
       })
       .then(renderRecords)
-      .catch(err => {
+      .catch(() => {
         document.getElementById('recordsBody').innerHTML = `
           <div class="records-empty">
             ⚠️ 無法載入記錄<br>
