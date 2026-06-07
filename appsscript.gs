@@ -90,8 +90,8 @@ function sendDailyReport() {
     .sort((a, b) => b[1] - a[1]).slice(0, 5)
     .map(([n, q]) => `  ${n}：${q} 份`).join('\n');
 
+  if (total === 0) return;
   broadcastLine([
-    '🌭 腸寶圖 每日報表',
     `📅 ${today}`,
     `📦 訂單數：${count} 筆`,
     `💰 今日營業額：$${total}`,
@@ -138,8 +138,8 @@ function sendMonthlyReport() {
   const avgDaily = Object.keys(dailyMap).length
     ? Math.round(total / Object.keys(dailyMap).length) : 0;
 
+  if (total === 0) return;
   broadcastLine([
-    '🌭 腸寶圖 月報表',
     `📅 ${year}年${parseInt(month)}月`,
     `📦 總訂單數：${count} 筆`,
     `💰 月營業額：$${total}`,
