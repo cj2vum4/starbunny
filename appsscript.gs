@@ -14,16 +14,18 @@ function doGet(e) {
   const orders = [];
   for (let i = 1; i < data.length; i++) {
     if (!data[i][0]) continue;
-    if (data[i][0].toString().startsWith(today)) {
-      orders.push({
-        row:   i + 1,
-        time:  data[i][0].toString(),
-        items: data[i][1].toString(),
-        total: Number(data[i][2]),
-        cash:  data[i][3] !== '' && data[i][3] !== undefined ? Number(data[i][3]) : null,
-        change: data[i][4] !== '' && data[i][4] !== undefined ? Number(data[i][4]) : null,
-      });
-    }
+    const timeStr = data[i][0] instanceof Date
+      ? Utilities.formatDate(data[i][0], 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss')
+      : data[i][0].toString();
+    if (!timeStr.startsWith(today)) continue;
+    orders.push({
+      row:    i + 1,
+      time:   timeStr,
+      items:  data[i][1].toString(),
+      total:  Number(data[i][2]),
+      cash:   (data[i][3] !== '' && data[i][3] != null) ? Number(data[i][3]) : null,
+      change: (data[i][4] !== '' && data[i][4] != null) ? Number(data[i][4]) : null,
+    });
   }
 
   return ContentService
@@ -71,7 +73,9 @@ function sendDailyReport() {
   const itemMap = {};
 
   for (let i = 1; i < data.length; i++) {
-    if (!data[i][0] || !data[i][0].toString().startsWith(today)) continue;
+    if (!data[i][0]) continue;
+    const t = data[i][0] instanceof Date ? Utilities.formatDate(data[i][0], 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss') : data[i][0].toString();
+    if (!t.startsWith(today)) continue;
     total += Number(data[i][2]);
     count++;
     data[i][1].toString().split('、').forEach(p => {
@@ -112,10 +116,12 @@ function sendMonthlyReport() {
   const itemMap = {}, dailyMap = {};
 
   for (let i = 1; i < data.length; i++) {
-    if (!data[i][0] || !data[i][0].toString().startsWith(prefix)) continue;
+    if (!data[i][0]) continue;
+    const t = data[i][0] instanceof Date ? Utilities.formatDate(data[i][0], 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss') : data[i][0].toString();
+    if (!t.startsWith(prefix)) continue;
     total += Number(data[i][2]);
     count++;
-    const day = data[i][0].toString().substring(0, 10);
+    const day = t.substring(0, 10);
     dailyMap[day] = (dailyMap[day] || 0) + Number(data[i][2]);
     data[i][1].toString().split('、').forEach(p => {
       const m = p.match(/^(.+?)×(\d+)/);
