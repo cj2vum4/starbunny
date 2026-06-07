@@ -178,3 +178,19 @@ function broadcastLine(message) {
 
 function testDailyReport()   { sendDailyReport(); }
 function testMonthlyReport() { sendMonthlyReport(); }
+
+function testDoGet() {
+  const sheet = getSheet();
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (!data[i][0]) continue;
+    const raw = data[i][0];
+    Logger.log('row=%s | type=%s | isDate=%s | toString=%s | formatted=%s',
+      i + 1,
+      typeof raw,
+      raw instanceof Date,
+      raw.toString(),
+      raw instanceof Date ? Utilities.formatDate(raw, 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss') : raw
+    );
+  }
+}
