@@ -697,20 +697,26 @@
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwilucXQ-BSXgXSh7NpQQxI77eYOmYSChWmizG8VyEXBy7_ZoG0oSG8VkzHDMH8PIwClA/exec';
 
   const MENU = [
-    { name: '花切香腸',       price: 50,  type: 'sausage' },
-    { name: '麻辣香腸',       price: 70,  type: 'sausage' },
-    { name: '高粱香腸',       price: 60,  type: 'sausage' },
-    { name: '飛魚卵香腸',     price: 70,  type: 'sausage' },
-    { name: '墨魚香腸',       price: 90,  type: 'sausage' },
-    { name: '香酥米腸',       price: 50,  type: 'sausage' },
-    { name: '寶藏箱',         price: 100, type: 'other'   },
-    { name: '深海藏寶',       price: 150, type: 'other'   },
-    { name: '咖哩飯(小)',     price: 40,  type: 'other'   },
-    { name: '咖哩飯(大)',     price: 150, type: 'other'   },
-    { name: '蜂蜜水(小)',     price: 40,  type: 'drink'   },
-    { name: '蜂蜜水(大)',     price: 80,  type: 'drink'   },
-    { name: '奶茶/奶綠(小)', price: 40,  type: 'drink'   },
-    { name: '奶茶/奶綠(大)', price: 80,  type: 'drink'   },
+    { name: '花切香腸',          price: 50,  type: 'sausage' },
+    { name: '麻辣香腸',          price: 70,  type: 'sausage' },
+    { name: '高粱香腸',          price: 60,  type: 'sausage' },
+    { name: '飛魚卵香腸',        price: 70,  type: 'sausage' },
+    { name: '墨魚香腸',          price: 90,  type: 'sausage' },
+    { name: '香酥米腸',          price: 50,  type: 'sausage' },
+    { name: '寶藏箱',            price: 100, type: 'other'   },
+    { name: '深海藏寶',          price: 150, type: 'other'   },
+    { name: '咖哩飯(小)',        price: 40,  type: 'other'   },
+    { name: '咖哩飯(大)',        price: 150, type: 'other'   },
+    { name: '蜂蜜水(小)',        price: 40,  type: 'drink'   },
+    { name: '蜂蜜水(大)',        price: 80,  type: 'drink'   },
+    { name: '奶茶/奶綠(小)',    price: 40,  type: 'drink'   },
+    { name: '奶茶/奶綠(大)',    price: 80,  type: 'drink'   },
+    { name: '泳圈吊飾(帶燈橘)', price: 750, type: 'merch'   },
+    { name: '泳圈吊飾(橘)',      price: 400, type: 'merch'   },
+    { name: '泳圈吊飾(綠)',      price: 380, type: 'merch'   },
+    { name: '貼紙一張',          price: 60,  type: 'merch'   },
+    { name: '貼紙一包(6張)',     price: 300, type: 'merch'   },
+    { name: '紅包一張',          price: 40,  type: 'merch'   },
   ];
 
   let order = [];
@@ -719,8 +725,9 @@
 
   // ── Build menu ──
   const GROUPS = [
-    { label: '香腸', types: ['sausage'] },
+    { label: '香腸',     types: ['sausage'] },
     { label: '套餐 ／ 飲料', types: ['other', 'drink'] },
+    { label: '周邊商品', types: ['merch'] },
   ];
   const grid = document.getElementById('menuGrid');
   GROUPS.forEach(group => {
