@@ -180,17 +180,23 @@ function testDailyReport()   { sendDailyReport(); }
 function testMonthlyReport() { sendMonthlyReport(); }
 
 function testDoGet() {
-  const sheet = getSheet();
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    if (!data[i][0]) continue;
-    const raw = data[i][0];
-    Logger.log('row=%s | type=%s | isDate=%s | toString=%s | formatted=%s',
-      i + 1,
-      typeof raw,
-      raw instanceof Date,
-      raw.toString(),
-      raw instanceof Date ? Utilities.formatDate(raw, 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss') : raw
-    );
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets().map(s => s.getName());
+  Logger.log('所有分頁名稱: ' + JSON.stringify(sheets));
+
+  const sheet = ss.getSheets()[0]; // 直接取第一個分頁
+  const lastRow = sheet.getLastRow();
+  Logger.log('第一個分頁: %s, 共 %s 列', sheet.getName(), lastRow);
+
+  if (lastRow < 2) { Logger.log('沒有資料列'); return; }
+
+  const row2 = sheet.getRange(2, 1, 1, 5).getValues()[0];
+  const raw = row2[0];
+  Logger.log('第2列A欄 raw: %s', raw);
+  Logger.log('typeof: %s', typeof raw);
+  Logger.log('instanceof Date: %s', raw instanceof Date);
+  Logger.log('toString: %s', raw.toString());
+  if (raw instanceof Date) {
+    Logger.log('formatted: %s', Utilities.formatDate(raw, 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss'));
   }
 }
